@@ -4,6 +4,7 @@ import com.zandroid.Greeting;
 import com.zandroid.service.GreetingService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,11 +21,16 @@ public class GreetingController {
     }
 
     @GetMapping("/greeting")
-    public ResponseEntity greeting(@RequestParam(value="name", defaultValue="World") String name) {
+    public ResponseEntity greeting(@RequestParam(value="name") String name) {
 
-        return Optional.ofNullable(greetingService.getMessage(name))
+        return greetingService.getMessage(name)
                 .map(a -> new ResponseEntity<Greeting>(a, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                .orElseThrow(IllegalArgumentException::new);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    ResponseEntity<String> notFound(IllegalArgumentException ex) {
+        return new ResponseEntity<String>("Not Exist user", HttpStatus.NOT_FOUND);
     }
 
 }
